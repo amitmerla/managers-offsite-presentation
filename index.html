@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>From Firefighting to Self-Healing</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23000'/%3E%3Cpath d='M18 46V18h6l8 14 8-14h6v28' fill='none' stroke='%2300ff9c' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body data-theme="neutral">
+
+<canvas id="rain" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<div class="scanlines" aria-hidden="true"></div>
+<div class="cursor-glow" aria-hidden="true"></div>
+
+<!-- Boot sequence -->
+<div id="boot" role="dialog" aria-label="Intro">
+  <div class="boot-term">
+    <div class="boot-line" data-type="Wake up, managers…"></div>
+    <div class="boot-line" data-type="The fires have you."></div>
+    <div class="boot-line" data-type="Follow the self-healing loop."></div>
+    <div class="boot-line dim" data-type="Knock, knock."></div>
+  </div>
+  <button class="boot-skip" type="button">Press any key to enter <kbd>↵</kbd></button>
+</div>
+
+<!-- Top HUD -->
+<header class="hud-top">
+  <div class="brand" data-tip="Glassbox · R&amp;D|Engineering Leadership Offsite, November 1–2, 2026">
+    <span class="brand-mark"><i></i><i></i><i></i></span>
+    <span class="brand-name">Glassbox</span>
+    <span class="brand-sep"></span>
+    <span class="brand-kicker" id="kicker">Engineering Leadership Offsite</span>
+  </div>
+  <nav class="hud-actions">
+    <button type="button" id="btnNarrate" class="pill" data-tip="Narrate|Reads the speaker notes aloud with word highlight and auto-advances (P)">
+      <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>
+      <span>Narrate</span>
+    </button>
+    <select id="voicePick" class="pill select" data-tip="Voice|Premium / Natural / Enhanced voices are listed first"></select>
+    <button type="button" id="btnNotes" class="pill icon" data-tip="Speaker notes|Toggle the notes drawer (N)">
+      <svg viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+    </button>
+    <button type="button" id="btnGrid" class="pill icon" data-tip="Overview|See every slide at once (O)">
+      <svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>
+    </button>
+    <button type="button" id="btnFull" class="pill icon" data-tip="Fullscreen|Present edge to edge (F)">
+      <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+    </button>
+  </nav>
+</header>
+
+<main id="viewport">
+<div id="stage">
+
+  <!-- 01 · TITLE -->
+  <section class="slide s-title" data-theme="neutral" data-kicker="Engineering Leadership Offsite · Nov 1–2, 2026"
+    data-notes="Frame the session: this is a discussion, not a presentation. About five minutes of context, industry data plus our own R&D data, then the Transformers Squad's Q4 plan as a concrete example, then the group decides, and every pod puts its own plan on the table. The line on the slide is the story: from noisy, reactive pages to systems that detect, diagnose and fix known failures on their own.">
+    <div class="eyebrow mono" data-decode>ENGINEERING LEADERSHIP OFFSITE · NOVEMBER 1–2, 2026</div>
+    <h1 class="mega">
+      <span class="line fire-text" data-glitch="From Firefighting">From Firefighting</span>
+      <span class="line heal-text">to Self&#8209;Healing</span>
+    </h1>
+    <p class="lede">Cutting maintenance in high-friction pods · the Transformers Q4 plan</p>
+    <div class="pills-row">
+      <div class="pill-cap red" data-tip="Red pill · today|Humans detect and fix everything. Alerts, heroes, patches.">
+        <span class="capsule"></span><span class="mono">TODAY: REACTIVE</span>
+      </div>
+      <div class="flow-track"><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="pill-cap green" data-tip="Green pill · goal|Detect, diagnose, fix and learn. Humans review.">
+        <span class="capsule"></span><span class="mono">GOAL: SELF-HEALING</span>
+      </div>
+    </div>
+    <div class="hint mono">→ / space to begin</div>
+  </section>
+
+  <!-- 02 · INDUSTRY -->
+  <section class="slide s-stats" data-theme="fire" data-kicker="1 · Current situation — the industry"
+    data-notes="Anchor the room: this is not a Glassbox-only problem. Stripe's Developer Coefficient put maintenance at about 42 percent of the developer week. Atlassian: 69 percent of developers lose eight or more hours a week, and tech debt is the top friction. PagerDuty, surveying 500 IT leaders in June 2024: about 4,500 dollars per minute of downtime, about 175 minutes per incident, and customer-facing incidents up 43 percent. A newer vendor survey claims as much as 84 percent. Treat that as the upper bound.">
+    <div class="eyebrow mono" data-decode>1 · CURRENT SITUATION — THE INDUSTRY</div>
+    <h2 class="title">Maintenance quietly eats <em class="fire-text">almost half</em> the week</h2>
+    <div class="stat-grid">
+      <article class="stat-card glass" data-tip="Stripe Developer Coefficient|17.3 of 41.1 weekly hours go to maintenance and tech debt.">
+        <svg class="ring" viewBox="0 0 200 200"><circle class="ring-bg" cx="100" cy="100" r="84"/><circle class="ring-fg" cx="100" cy="100" r="84" data-pct="42"/></svg>
+        <div class="stat-num"><span data-count="42">0</span><small>%</small></div>
+        <p>of the average developer's week goes to maintenance and tech debt — <b>17.3 of 41.1 hours</b>.</p>
+        <cite class="mono">Stripe Developer Coefficient</cite>
+      </article>
+      <article class="stat-card glass" data-tip="Atlassian State of DevEx|Tech debt is the #1 cause of lost time (59%).">
+        <svg class="ring" viewBox="0 0 200 200"><circle class="ring-bg" cx="100" cy="100" r="84"/><circle class="ring-fg" cx="100" cy="100" r="84" data-pct="69"/></svg>
+        <div class="stat-num"><span data-count="69">0</span><small>%</small></div>
+        <p>of developers lose <b>8+ hours a week</b> to inefficiencies. Tech debt is the #1 cause (59%).</p>
+        <cite class="mono">Atlassian State of DevEx</cite>
+      </article>
+      <article class="stat-card glass" data-tip="PagerDuty 2024|175 minutes × $4,537 per minute. Incidents up 43% YoY.">
+        <div class="burn">
+          <div class="burn-bar"><i></i></div>
+          <div class="burn-meta mono"><span>175 min</span><span>× $4,537/min</span></div>
+        </div>
+        <div class="stat-num">$<span data-count="794">0</span><small>K</small></div>
+        <p>average cost of <b>one customer-facing incident</b>. Incidents up <b>43% YoY</b>.</p>
+        <cite class="mono">PagerDuty, 2024 study</cite>
+      </article>
+    </div>
+  </section>
+
+  <!-- 03 · FIREFIGHTING LOOP -->
+  <section class="slide s-loop" data-theme="fire" data-kicker="1 · Current situation — the pattern"
+    data-notes="The problem isn't the incident. It's step five. Every loop that ends with root cause parked guarantees the next page. Ask the room: how many of last quarter's incidents in our high-friction pods were repeats of something we had seen before?">
+    <div class="eyebrow mono" data-decode>1 · CURRENT SITUATION — THE PATTERN</div>
+    <h2 class="title">Firefighting is a <em class="fire-text">loop</em>, not an event</h2>
+    <div class="loop-wrap" data-loop="fire"
+      data-steps='[["Alert fires","Often noisy. Often at night."],["Page the hero","The same 2–3 people who know the system."],["Manual triage","Logs, dashboards and tribal knowledge."],["Patch &amp; restart","Service is back. Pressure is off."],["Root cause parked","Ticket closed. The real fix waits in the backlog."]]'
+      data-center="↺ Repeats next week|same alert, same people"></div>
+  </section>
+
+  <!-- 04 · BASELINE 2026 -->
+  <section class="slide s-baseline" data-theme="fire" data-kicker="1 · Current situation — our R&D baseline"
+    data-notes="Now our own data. In 2026, R&D shipped 34 regressions that reached customers as known issues: 8 in Q1, 7 in Q2, a spike of 12 in Q3, and 7 in Q4. That is roughly eight and a half per quarter, almost three a month. This is the starting benchmark for the Transformers Squad, and the line every pod measures 2027 against. Hover any bar to see the original dashboard values.">
+    <div class="eyebrow mono" data-decode>1 · CURRENT SITUATION — OUR R&amp;D BASELINE</div>
+    <h2 class="title"><em class="fire-text">34</em> R&amp;D regressions in 2026. <span class="muted">Our starting line.</span></h2>
+    <div class="baseline-grid">
+      <aside class="kpis">
+        <div class="kpi big glass" data-tip="2026 total|Known Issues · Root Cause: R&amp;D Regression · Q1–Q4 2026">
+          <span class="kpi-label mono">2026 TOTAL</span>
+          <span class="kpi-val fire-text" data-count="34">0</span>
+          <span class="kpi-sub">known issues caused by R&amp;D regressions</span>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi glass" data-tip="Average per quarter|34 ÷ 4 quarters"><span class="kpi-label mono">AVG / QTR</span><span class="kpi-val" data-count="8.5" data-dec="1">0</span></div>
+          <div class="kpi glass" data-tip="Peak quarter|Q3 2026 — 12 regressions, +71% vs Q2"><span class="kpi-label mono">PEAK · Q3</span><span class="kpi-val" data-count="12">0</span></div>
+          <div class="kpi glass" data-tip="Per month|34 ÷ 12 months — almost three escapes a month"><span class="kpi-label mono">PER MONTH</span><span class="kpi-val" data-count="2.8" data-dec="1">0</span></div>
+        </div>
+      </aside>
+      <div class="chart-card glass">
+        <div class="chart-head">
+          <div>
+            <div class="chart-title">Known Issues &amp; Hotfixes by Root Cause</div>
+            <div class="chart-sub mono">COUNT BY · KNOWN ISSUES &nbsp;·&nbsp; <span class="dot-legend"></span> R&amp;D REGRESSION</div>
+          </div>
+          <div class="chart-badge mono">2026</div>
+        </div>
+        <svg id="baselineChart" class="bar-chart" viewBox="0 0 760 400" role="img" aria-label="R&amp;D regressions per quarter in 2026: Q1 8, Q2 7, Q3 12, Q4 7"></svg>
+        <div class="thumbs">
+          <span class="mono">SOURCE SNAPSHOTS</span>
+          <button type="button" class="thumb" data-src="source/regressions-2026-q1.png" data-tip="Dashboard · 2026 Q1|8 known issues — click to enlarge"><img src="source/regressions-2026-q1.png" alt="Dashboard snapshot showing 2026 Q1: 8"></button>
+          <button type="button" class="thumb" data-src="source/regressions-2026-q2.png" data-tip="Dashboard · 2026 Q2|7 known issues — click to enlarge"><img src="source/regressions-2026-q2.png" alt="Dashboard snapshot showing 2026 Q2: 7"></button>
+          <button type="button" class="thumb" data-src="source/regressions-2026-q3.png" data-tip="Dashboard · 2026 Q3|12 known issues — click to enlarge"><img src="source/regressions-2026-q3.png" alt="Dashboard snapshot showing 2026 Q3: 12"></button>
+          <button type="button" class="thumb" data-src="source/regressions-2026-q4.png" data-tip="Dashboard · 2026 Q4|7 known issues — click to enlarge"><img src="source/regressions-2026-q4.png" alt="Dashboard snapshot showing 2026 Q4: 7"></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 · 2027 TARGET -->
+  <section class="slide s-target" data-theme="heal" data-kicker="2 · Gap & future goals — the 2027 benchmark"
+    data-notes="2026 is the benchmark; 2027 is the climb down. Drag the slider to set the reduction target with the group. The dim bars are the 2026 actuals; the green bars are the 2027 glide path, front-loaded so the biggest drop comes once the three layers are in place. Whatever number we agree on here becomes the success bar every pod reports against.">
+    <div class="eyebrow mono" data-decode>2 · GAP &amp; FUTURE GOALS — THE 2027 BENCHMARK</div>
+    <h2 class="title">2026 is the benchmark. <em class="heal-text">2027 is the climb down.</em></h2>
+    <div class="target-grid">
+      <div class="chart-card glass wide">
+        <svg id="targetChart" class="bar-chart" viewBox="0 0 1000 420" role="img" aria-label="2026 actual regressions per quarter and the 2027 target glide path"></svg>
+      </div>
+      <aside class="target-ctl glass">
+        <span class="kpi-label mono">2027 REDUCTION TARGET</span>
+        <div class="target-pct heal-text"><span id="pctOut">50</span><small>%</small></div>
+        <input id="pctRange" type="range" min="0" max="100" step="5" value="50" aria-label="2027 reduction target percent"
+          data-tip="Set it live|Drag to agree the 2027 target with the room">
+        <div class="target-compare">
+          <div><span class="mono">2026 ACTUAL</span><b class="fire-text">34</b></div>
+          <div class="arrow-r">→</div>
+          <div><span class="mono">2027 CEILING</span><b class="heal-text" id="ceilOut">17</b></div>
+        </div>
+        <p class="muted small" id="targetSay">≈ 1.4 regressions a month instead of 2.8.</p>
+        <span class="tag mono">TARGET · SET WITH THE GROUP</span>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 06 · LADDER -->
+  <section class="slide s-ladder" data-theme="heal" data-kicker="2 · Gap & future goals"
+    data-notes="Self-healing is not a switch; it's a ladder. Most high-friction pods sit at Level zero to one. You can't automate a fix you haven't written down, that's Level two, and you can't write a runbook for an alert you can't trust, that's Level one. Ask each pod lead to self-place their pod. A realistic twelve-month target for high-friction pods: Level three for the top recurring incidents.">
+    <div class="eyebrow mono" data-decode>2 · GAP &amp; FUTURE GOALS</div>
+    <h2 class="title">Five steps from <em class="fire-text">reactive</em> to <em class="heal-text">self-healing</em></h2>
+    <div class="ladder">
+      <div class="step" style="--i:0" data-tip="Level 0 · Reactive|Where most high-friction pods start."><span class="lvl mono">LEVEL 0</span><h3>Reactive</h3><p>Humans detect and fix everything.</p></div>
+      <div class="step" style="--i:1" data-tip="Level 1 · Observable|You can't write a runbook for an alert you can't trust."><span class="lvl mono">LEVEL 1</span><h3>Observable</h3><p>SLOs and actionable alerts. Noise cut.</p></div>
+      <div class="step" style="--i:2" data-tip="Level 2 · Runbooks|You can't automate a fix you haven't written down."><span class="lvl mono">LEVEL 2</span><h3>Runbooks</h3><p>Every repeat incident has a tested runbook.</p></div>
+      <div class="step target" style="--i:3" data-tip="Level 3 · 12-month target|For the top recurring incidents in high-friction pods."><span class="lvl mono">LEVEL 3</span><h3>Automated fixes</h3><p>Known failures fixed by automation; humans approve.</p></div>
+      <div class="step" style="--i:4" data-tip="Level 4 · Self-healing|Detect, diagnose, fix and learn."><span class="lvl mono">LEVEL 4</span><h3>Self-healing</h3><p>Detect, diagnose, fix and learn. Humans review.</p></div>
+      <div class="ladder-marker here mono">◉ MOST PODS TODAY · L0–1</div>
+      <div class="ladder-marker goal mono">⚑ 12-MONTH TARGET · L3</div>
+    </div>
+  </section>
+
+  <!-- 07 · GARTNER -->
+  <section class="slide s-gartner" data-theme="heal" data-kicker="Where the industry is heading"
+    data-notes="Gartner, in March 2026, expects adoption of autonomous reliability practices to go from about 5 percent of organizations in 2026 to 70 percent by 2030. Our customers' engineering teams are on the same curve, and as a digital experience analytics company, reliability is part of our product promise. The ladder is how we get there without betting everything on AI.">
+    <div class="eyebrow mono" data-decode>WHERE THE INDUSTRY IS HEADING</div>
+    <div class="gartner-grid">
+      <div class="g-nums">
+        <div class="g-num"><span class="g-val" data-count="5">0</span><small>%</small><span class="g-year mono">2026</span></div>
+        <div class="g-arrow"><span></span></div>
+        <div class="g-num big heal-text"><span class="g-val" data-count="70">0</span><small>%</small><span class="g-year mono">2030</span></div>
+      </div>
+      <svg id="sCurve" viewBox="0 0 700 360" class="s-curve" aria-label="Adoption curve from 5% in 2026 to 70% in 2030"></svg>
+    </div>
+    <p class="g-claim">of organizations will run <b>autonomous, self-healing reliability</b> practices by 2030.</p>
+    <p class="g-q">The question isn't whether — it's whether our high-friction pods are ready to climb the ladder.</p>
+    <cite class="mono foot">Source: Gartner, “Autonomous Reliability: Unleashing Agentic AI to Drive Self-Healing IT Operations,” March 2026</cite>
+  </section>
+
+  <!-- 08 · FIRES → 0 -->
+  <section class="slide s-fires" data-theme="fire" data-kicker="3 · The Transformers plan · Q4 2026"
+    data-notes="This is where we move from industry context to a concrete plan. Today the Transformers Squad still receives live fires from production. 34 R&D regressions this year alone. The Q4 goal sounds unbelievable on purpose: no more big live fires. Small issues will still happen. The difference is that we catch them while they're small and treat them automatically, before they spread. The next two slides show how.">
+    <div class="eyebrow mono" data-decode>3 · THE TRANSFORMERS PLAN · Q4 2026</div>
+    <div class="fires-grid">
+      <div class="fire-side">
+        <div class="embers" aria-hidden="true"></div>
+        <span class="mono label">TODAY · LIVE, FROM PRODUCTION</span>
+        <div class="fires-word fire-text" data-glitch="Fires">Fires</div>
+        <span class="mono sub"><b data-count="34">0</b> R&amp;D REGRESSIONS IN 2026</span>
+      </div>
+      <div class="fires-arrow"><svg viewBox="0 0 200 60"><path d="M0 30h180M160 10l20 20-20 20"/></svg></div>
+      <div class="heal-side">
+        <div class="zero heal-text">0</div>
+        <span class="mono label">END OF Q4 · BIG LIVE FIRES</span>
+      </div>
+    </div>
+    <p class="fires-claim"><b>No more big live fires.</b> Issues are caught while they're small and get <em class="heal-text">self-healing treatment</em> instead of a firefight.</p>
+    <p class="muted fires-foot">The Transformers Squad (soon to be a pod) commits to this in Q4 — and puts the plan up as an example for every pod.</p>
+  </section>
+
+  <!-- 09 · THREE LAYERS -->
+  <section class="slide s-layers" data-theme="heal" data-kicker="3 · The Transformers plan — three layers"
+    data-notes="Three layers, each catching a different kind of fire. One, production: Datadog smart alerts on live detector performance, with AI-driven decisions later, so we see the problem as it starts, not when a customer calls. Two, pre-release: for every detector version, the Shraga QA agent compares site performance with versus without the detector, and against the previous version's results. It is fully AI-controlled, including the analysis. Three, end-to-end: smart AI QA for anything that needs the live cycle from detector to replay. The same need exists for the mobile team.">
+    <div class="eyebrow mono" data-decode>3 · THE TRANSFORMERS PLAN — THREE LAYERS</div>
+    <h2 class="title">Three layers that keep a <em class="heal-text">small fire small</em></h2>
+    <div class="layers-grid">
+      <svg id="shield" viewBox="0 0 420 420" class="shield" aria-label="Three concentric defense layers catching incoming issues"></svg>
+      <div class="layer-cards">
+        <article class="layer glass" data-layer="2" data-tip="Layer 01 · outermost ring|Catches what slipped through, live in production.">
+          <span class="num mono">01</span>
+          <div><h3>Live production monitoring</h3><p>Smart alerts on live detector performance — Datadog smart decisions now, AI next. Catch issues as they happen, before they spread.</p><span class="tag mono">IN PRODUCTION · DATADOG → AI</span></div>
+        </article>
+        <article class="layer glass" data-layer="1" data-tip="Layer 02 · middle ring|Every detector version, before it ships.">
+          <span class="num mono">02</span>
+          <div><h3>Pre-release QA per detector version</h3><p>The Shraga QA agent tests each version vs. the site without the detector and vs. the prior version. Fully AI-run, with smart analysis.</p><span class="tag mono">BEFORE RELEASE · SHRAGA QA AGENT</span></div>
+        </article>
+        <article class="layer glass" data-layer="0" data-tip="Layer 03 · inner ring|What only a live detector → replay cycle can show.">
+          <span class="num mono">03</span>
+          <div><h3>End-to-end smart AI QA</h3><p>Verifies what only a live cycle can show — from detector all the way to replay. Relevant to the mobile team too.</p><span class="tag mono">FULL CYCLE · DETECTOR → REPLAY</span></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · SELF-HEALING LOOP -->
+  <section class="slide s-loop" data-theme="heal" data-kicker="3 · The Transformers plan — how it flows"
+    data-notes="This mirrors the firefighting loop from earlier, but every step now removes risk instead of parking it. A new detector version goes through the Shraga QA agent, with versus without the detector and versus the previous version, then end-to-end smart AI QA across the full detector-to-replay cycle, then release. In production, Datadog smart alerts watch detector performance live. Whatever production catches feeds back as a new check for the next version, so the same fire doesn't come back.">
+    <div class="eyebrow mono" data-decode>3 · THE TRANSFORMERS PLAN — HOW IT FLOWS</div>
+    <h2 class="title">Self-healing is a <em class="heal-text">loop</em>, too</h2>
+    <div class="loop-wrap" data-loop="heal"
+      data-steps='[["New version","A detector build, ready to ship — not yet trusted."],["Shraga QA agent","Vs. the site without it, and vs. the prior version."],["E2E smart AI QA","Live cycle from detector to replay. Web and mobile."],["Release","Ships with a known performance baseline."],["Live monitoring","Datadog smart alerts (AI next) catch it small."]]'
+      data-center="↺ Every catch becomes a check|for the next version"></div>
+  </section>
+
+  <!-- 11 · DISCUSSION -->
+  <section class="slide s-questions" data-theme="neutral" data-kicker="4 · Discussion questions"
+    data-notes="Spend most of the slot here. Use the Transformers plan as the worked example, then go pod by pod. Suggested timing: about ten minutes per question, or let the group pick the two that matter most. Click a question to focus it and start its timer. Backup questions if time allows: do we adopt a hard maintenance cap, and what happens when a pod breaches it? How do we reward engineers who remove fires, not just fight them?">
+    <div class="eyebrow mono" data-decode>4 · DISCUSSION QUESTIONS</div>
+    <h2 class="title">What we need the group to <em class="heal-text">decide</em></h2>
+    <div class="q-grid">
+      <button type="button" class="q glass" style="--i:0"><span class="qn mono">01</span><span class="qt">Transformers as the Q4 pilot: is <b>“no big live fires”</b> the right bar for success?</span><span class="qtimer mono">10:00</span></button>
+      <button type="button" class="q glass" style="--i:1"><span class="qn mono">02</span><span class="qt">Every pod's plan: what are <b>your three layers</b> — production, pre-release, end-to-end?</span><span class="qtimer mono">10:00</span></button>
+      <button type="button" class="q glass" style="--i:2"><span class="qn mono">03</span><span class="qt">Shared tooling: should the <b>Shraga QA agent</b> and E2E AI QA serve other pods, mobile first?</span><span class="qtimer mono">10:00</span></button>
+      <button type="button" class="q glass" style="--i:3"><span class="qn mono">04</span><span class="qt">Build or buy: <b>in-house auto-remediation</b>, or an AI SRE platform?</span><span class="qtimer mono">10:00</span></button>
+    </div>
+    <p class="muted small q-hint mono">CLICK A QUESTION TO FOCUS IT AND START A 10-MINUTE TIMER · CLICK AGAIN TO PAUSE</p>
+  </section>
+
+  <!-- 12 · POD PLANS -->
+  <section class="slide s-table" data-theme="neutral" data-kicker="4 · Discussion — captured live"
+    data-notes="Fill this in live. Transformers is pre-filled as the example. For each pod, capture one line per layer: how you catch issues in production, how you catch them before release, what end-to-end check you need, and the one measurable success bar for Q4. Leave blanks blank; a gap is a useful outcome too.">
+    <div class="eyebrow mono" data-decode>4 · DISCUSSION — CAPTURED LIVE</div>
+    <h2 class="title">Every pod's Q4 plan, <em class="heal-text">side by side</em></h2>
+    <div class="table-card glass">
+      <table id="podTable">
+        <thead><tr><th>Pod</th><th>Catch in production</th><th>Catch before release</th><th>End-to-end check</th><th>Q4 success bar</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="table-actions">
+      <button type="button" class="pill" id="addRow" data-tip="Add a pod|Appends an empty row">+ Add pod</button>
+      <button type="button" class="pill" id="copyMd" data-tip="Copy as Markdown|Paste straight into Confluence, Slack or Jira">Copy as Markdown</button>
+      <button type="button" class="pill ghost" id="resetTable" data-tip="Reset|Back to the original Transformers / Mobile / blank rows">Reset</button>
+      <span class="muted small mono">EDITS SAVE IN THIS BROWSER AUTOMATICALLY</span>
+    </div>
+  </section>
+
+  <!-- 13 · CLOSE -->
+  <section class="slide s-close" data-theme="heal" data-kicker="Transformers Squad · Q4 2026"
+    data-notes="Close the loop. 34 regressions was 2026. The red pill is another year of firefighting. The green pill is the three layers, starting with the Transformers in Q4 and spreading pod by pod in 2027. Thank you.">
+    <div class="close-term mono">
+      <div data-type="> baseline.load('2026')  // 34 R&amp;D regressions"></div>
+      <div data-type="> transformers.deploy(layers=3)"></div>
+      <div data-type="> fires.big.live = 0"></div>
+      <div data-type="> every_pod.next()  // 2027"></div>
+    </div>
+    <h2 class="mega small"><span class="heal-text">Free your pod.</span></h2>
+    <p class="lede">From firefighting to self-healing · Thank you</p>
+  </section>
+
+</div>
+</main>
+
+<!-- Bottom HUD -->
+<footer class="hud-bottom">
+  <button type="button" class="nav-btn" id="prev" aria-label="Previous slide" data-tip="Previous|← or PageUp">‹</button>
+  <div class="progress" id="progress" aria-hidden="true"></div>
+  <span class="counter mono"><b id="curNum">01</b> / <span id="totNum">13</span></span>
+  <button type="button" class="nav-btn" id="next" aria-label="Next slide" data-tip="Next|→, space or PageDown">›</button>
+</footer>
+
+<!-- Notes drawer -->
+<aside id="notes" class="glass" aria-label="Speaker notes">
+  <div class="notes-head mono"><span>SPEAKER NOTES</span><label class="auto"><input type="checkbox" id="autoAdv" checked> AUTO-ADVANCE WHILE NARRATING</label></div>
+  <div id="notesBody"></div>
+</aside>
+
+<!-- Overview -->
+<div id="overview" aria-label="Slide overview"><div class="ov-grid"></div></div>
+
+<!-- Lightbox -->
+<div id="lightbox" role="dialog" aria-label="Dashboard snapshot"><img alt=""></div>
+
+<div id="tip" role="tooltip"><b></b><span></span></div>
+<div id="toast" role="status"></div>
+
+<script src="assets/charts.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
